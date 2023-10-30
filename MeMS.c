@@ -1,18 +1,7 @@
-/*
-All the main functions with respect to the MeMS are inplemented here
-read the function discription for more details
-
-NOTE: DO NOT CHANGE THE NAME OR SIGNATURE OF FUNCTIONS ALREADY PROVIDED
-you are only allowed to implement the functions 
-you can also make additional helper functions a you wish
-
-REFER DOCUMENTATION FOR MORE DETAILS ON FUNSTIONS AND THEIR FUNCTIONALITY
-*/
-// add other headers as required
 #include<stdio.h>
 #include<stdlib.h>
-
-
+#include <unistd.h>
+#include <sys/mman.h>
 /*
 Use this macro where ever you need PAGE_SIZE.
 As PAGESIZE can differ system to system we should have flexibility to modify this 
@@ -29,7 +18,15 @@ Initializes all the required parameters for the MeMS system. The main parameters
 Input Parameter: Nothing
 Returns: Nothing
 */
+
 void mems_init(){
+    //Initialize main chain node
+    struct Node{
+        struct Node* chain;
+        struct Node* next;
+        struct Node* prev;
+    };
+
 
 }
 
@@ -95,8 +92,9 @@ void mems_free(void *v_ptr){
 }
 
 
-int main{
+int main(){
 
+    printf("%ld",sysconf(_SC_PAGE_SIZE)); // 4096
 
 
 
