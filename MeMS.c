@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <string.h>
 /*
 Use this macro where ever you need PAGE_SIZE.
 As PAGESIZE can differ system to system we should have flexibility to modify this 
@@ -19,13 +20,30 @@ Input Parameter: Nothing
 Returns: Nothing
 */
 
+struct main{
+    struct sub* subnode;
+    struct main* prev;
+    struct main* next;
+    void* virt_add;
+    void* start_add;
+    int pages;
+}
+
+struct sub{
+    struct main* mainnode;
+    struct sub* prev;
+    struct sub* next;
+    int status;                 // status-1(for parent and 0 for child)
+    void* start_sub;
+    void* end_sub;
+}
+
+struct main* head;
+
 void mems_init(){
     //Initialize main chain node
-    struct Node{
-        struct Node* chain;
-        struct Node* next;
-        struct Node* prev;
-    };
+    
+    head = NULL;
 
 
 }
