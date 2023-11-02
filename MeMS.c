@@ -3,13 +3,8 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <string.h>
-/*
-Use this macro where ever you need PAGE_SIZE.
-As PAGESIZE can differ system to system we should have flexibility to modify this 
-macro to make the output of all system same and conduct a fair evaluation. 
-*/
+typedef unsigned long ulong;
 #define PAGE_SIZE 4096
-
 
 /*
 Initializes all the required parameters for the MeMS system. The main parameters to be initialized are:
@@ -112,9 +107,10 @@ void mems_free(void *v_ptr){
 
 int main(){
 
-    printf("%ld",sysconf(_SC_PAGE_SIZE)); // 4096
+    
 
-
+    ul t = 5;
+    printf("%llu",t);
 
     return 0;
 }
