@@ -26,8 +26,8 @@ struct subNode {
     struct subNode* prev;
     struct subNode* next;
     int status; // status-1(for process and 0 for hole)
-    void* start_sub;
-    void* end_sub;
+    void* start_virt;
+    void* end_virt;
     void* phy_add;
 };
 
@@ -54,8 +54,9 @@ void mems_init() {
     head->start_add = (void *)head;
     // tail = head;
     printf("Head Physical address is:%d\n", head->start_add);
-    printf("size of head:%d\n",sizeof(head));
-    p = (void *)((char *)head->start_add + sizeof(head));
+    // printf("size of head:%d\n",sizeof(head));
+    // printf("size of structure is :%d\n",sizeof(struct mainNode));
+    p = (void *)((char *)head->start_add + sizeof(struct mainNode));
     printf("%d\n",p);
 }
 
@@ -71,37 +72,50 @@ void mems_finish() {
 Allocates memory of the specified size by reusing a segment from the free list if 
 a sufficiently large segment is available.
 */
+
+struct subNode* createHole(struct mainNode* Node,void* p){
+    struct subNode* hole = (struct subNode*)p;
+        hole->main_chain_node = Node;
+        hole->prev = NULL;
+        hole->next = NULL;
+        hole->status = 0;
+        hole->start_virt = Node->start_virt_add;
+        hole->end_virt = Node->end_virt_add;
+}
+
 void* mems_malloc(size_t size) {
     // Implement the function according to the requirements
-    
-
-    int tot_pages = ceil(size/4096);
+    int tot_pages = 0;
+    if (size%4096 == 0){
+        tot_pages = (size/4096);
+    }else{
+        tot_pages = (size/4096) + 1;
+    }
+    // printf("%d\n",tot_pages);
     struct mainNode* Node = (struct mainNode*)p;
     if(count == 0){
         Node->parent = head;
         head->child = Node;
         Node->start_virt_add = 0;
         Node->end_virt_add = (char *)Node->start_virt_add + (tot_pages*4096) - 1;
-        Node->start_add = p;
-        int sizeMain = sizeof(Node);
+        int sizeMain = sizeof(struct mainNode);
         p = (void *)((char*)p + sizeMain);
         Node->pages = tot_pages;
         printf("%ld\n",sizeof(Node));
         printf("%d\n",p);
-        struct subNode* hole = (struct subNode*)p;
-        hole->main_chain_node = Node;
-        hole->prev = NULL;
-        hole->next = NULL;
-        hole->status = 0;
-        hole->start_sub = Node->start_virt_add;
-        hole->end_sub = Node->end_virt_add;
-        hole->phy_add = (void*)mmap(NULL, tot_pages * PAGE_SIZE , PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-        if (hole->phy_add == MAP_FAILED) {
-            perror("mmap");
-            exit(EXIT_FAILURE);
+
+        Node->start_add = mmap(NULL, (int)tot_pages * PAGE_SIZE , PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        if (Node->start_add == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
         }
-        int sizeSub = sizeof(hole);
+
+        struct subNode* hole = createHole(&Node,&p);
+        Node->subn = hole;
+        int sizeSub = sizeof(struct subNode);
+        printf("size of subNodes are:%d\n",sizeSub);
         p = (void *)((char*)p + sizeSub);
+        printf("%d\n",p);
         count ++;
         return NULL;
     }else{
