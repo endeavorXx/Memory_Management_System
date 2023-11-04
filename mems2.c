@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE 8192
 
 typedef unsigned long ulong;
 
@@ -106,10 +106,10 @@ struct subNode* createHole(struct mainNode* Node){
 void* mems_malloc(size_t size) {
     // Implement the function according to the requirements
     int tot_pages = 0;
-    if (size%4096 == 0){
-        tot_pages = (size/4096);
+    if (size%PAGE_SIZE == 0){
+        tot_pages = (size/PAGE_SIZE);
     }else{
-        tot_pages = (size/4096) + 1;
+        tot_pages = (size/PAGE_SIZE) + 1;
     }
     // printf("%d\n",tot_pages);
 
@@ -119,7 +119,7 @@ void* mems_malloc(size_t size) {
         Node->prev = NULL;
         Node->next = NULL;
         Node->start_virt_add = (void*)(char*)0;
-        Node->end_virt_add = (void*)((char *)Node->start_virt_add + (tot_pages*4096) - 1);
+        Node->end_virt_add = (void*)((char *)Node->start_virt_add + (tot_pages*PAGE_SIZE) - 1);
         int sizeMain = sizeof(struct mainNode);
         printf("Node1 start v address:%d\n",Node->start_virt_add);
         printf("Node1 end v address:%d\n",Node->end_virt_add);
@@ -199,15 +199,15 @@ void* mems_malloc(size_t size) {
     p = (void *)((char*)p + sizeSub);
     printf("%d\n",p);
     count ++;                               // increase count of main nodes
-
-    temp = head;
+    void*a = head;
+    temp = a;
     struct subNode* temp_sub = NULL;
     while(temp!=NULL){
         temp_sub = temp->subn;
         while(temp_sub!=NULL){
             if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>=size){
                 struct subNode* Node2 = createNewSubNode(temp_sub,temp,size);
-                printf("Hello \n");
+               
                 return Node2->start_virt;
             }
             temp_sub = temp_sub->next;
@@ -229,13 +229,39 @@ Returns the MeMS physical address mapped to ptr ( ptr is MeMS virtual address).
 */
 void* mems_get(void* v_ptr) {
     // Implement the function according to the requirements
-    
+    struct mainNode* temp = head;
+    struct subNode* sub_temp;
+     
+    while(temp!=NULL){
+        // printf("%d\n",(char*)temp->start_virt_add);
+        // printf("%d\n",(char*)temp->end_virt_add);
+        // printf("%d\n",(char*)v_ptr >= (char*)temp->start_virt_add && (char*)v_ptr <= (char*)temp->end_virt_add);
+        if ((char*)v_ptr >= (char*)temp->start_virt_add && (char*)v_ptr <= (char*)temp->end_virt_add){
+            sub_temp = temp->subn;
+            printf("enter\n");
+            while(sub_temp!=NULL){
+                printf("%d\n",(char*)sub_temp->start_virt);
+                printf("%d\n",(char*)sub_temp->end_virt);
+                printf("%d\n",v_ptr >= sub_temp->start_virt && v_ptr <= sub_temp->end_virt);
+                if (v_ptr >= sub_temp->start_virt && v_ptr <= sub_temp->end_virt){
+                    if (sub_temp->status == 0){
+                        printf("Segmentation Fault!");
+                    }else{
+                        return (void*)((char*)temp->start_add + ((char*)v_ptr - (char*)temp->start_virt_add));
+                    }
+                }
+
+                sub_temp = sub_temp->next;
+            }
+        }
+        temp = temp->next;
+    }
 
 
 
 
 
-    return NULL; // Update the return value
+    return 22; // Update the return value
 }
 
 /*
@@ -257,6 +283,17 @@ int main() {
         ptr[i] = (int*)mems_malloc(sizeof(int)*250);
         printf("Virtual address: %lu\n", (unsigned long)ptr[i]);
     }
-    printf("%d\n",count);
+
+    printf("\n------ Assigning value to Virtual address [mems_get] -----\n");
+    // how to write to the virtual address of the MeMS (this is given to show that the system works on arrays as well)
+    // int* phy_ptr= (int*) mems_get(&ptr[0][1]); // get the address of index 1
+//    printf("Hello\n");
+   printf("%d\n",(int*) mems_get((int*)0));
+//    printf("%d\n",(int*) mems_get(&ptr[0][0]));
+    // phy_ptr[0]=200; // put value at index 1
+    // int* phy_ptr2= (int*) mems_get(&ptr[0][0]); // get the address of index 0
+    // printf("Virtual address: %lu\tPhysical Address: %lu\n",(unsigned long)ptr[0],(unsigned long)phy_ptr2);
+    // printf("Value written: %d\n", phy_ptr2[1]); // print the address of index 1 
+
     return 0;
 }
