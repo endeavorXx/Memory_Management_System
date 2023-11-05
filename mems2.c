@@ -160,7 +160,7 @@ void* mems_malloc(size_t size) {
             temp_sub = temp->subn;
             printf("BigHole start and end v address:%d %d\n",temp->subn->start_virt,temp->subn->end_virt);
             while(temp_sub!=NULL){
-                if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>=size){
+                if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>size){
                     struct subNode* sub1 = createNewSubNode(temp_sub,temp,size);
                     temp->subn  = sub1;
                     temp->no_of_subnodes++;
@@ -170,6 +170,9 @@ void* mems_malloc(size_t size) {
                     printf("hole end v address--> %d:\n",temp_sub->end_virt);
                     printf("checking :%d\n",sub1->next->start_virt);
                     return sub1->start_virt;
+                }else if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)==size){
+                    temp_sub->status = 1;
+                    return temp_sub->start_virt;
                 }
                 temp_sub = temp_sub->next;
             }
@@ -181,7 +184,7 @@ void* mems_malloc(size_t size) {
         while(temp!=NULL){
             temp_sub = temp->subn;
             while(temp_sub!=NULL){
-                if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>=size){
+                if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>size){
                     struct subNode* Node2 = createNewSubNode(temp_sub,temp,size);
                     temp->no_of_subnodes++;
                     printf("Yes it's me!!\n");
@@ -192,6 +195,10 @@ void* mems_malloc(size_t size) {
                     printf("checking :%d\n",Node2->next->start_virt);
                     // temp->subn = Node2->prev;
                     return Node2->start_virt;
+                }else if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)==size){
+                    temp_sub->status = 1;
+                    printf("Yes i returned something to main node: [%d-%d]\n",(char*)temp_sub->main_chain_node->start_virt_add,(char*)temp_sub->main_chain_node->end_virt_add);
+                    return temp_sub->start_virt;
                 }
                 temp_sub = temp_sub->next;
             }
@@ -233,7 +240,7 @@ void* mems_malloc(size_t size) {
     while(temp!=NULL){
         temp_sub = temp->subn;
         while(temp_sub!=NULL){
-            if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>=size){
+            if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>size){
                 struct subNode* Node2 = createNewSubNode(temp_sub,temp,size);
                 temp->subn = Node2;
                 temp->no_of_subnodes++;
@@ -243,6 +250,9 @@ void* mems_malloc(size_t size) {
                 printf("process start v address --> %d:\n",Node2->start_virt);
                 printf("process end v address --> %d:\n",Node2->end_virt);
                 return Node2->start_virt;
+            }else if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)==size){
+                temp_sub->status = 1;
+                return temp_sub->start_virt;
             }
             temp_sub = temp_sub->next;
         }
@@ -341,9 +351,51 @@ void* mems_get(void* v_ptr) {
 /*
 Frees up the memory pointed by our virtual_address and adds it to the free list.
 */
+void mergeHoles(struct subNode* hole1, struct subNode* hole2) {
+    hole1->end_virt = hole2->end_virt;
+    hole1->next = hole2->next;
+    if (hole2->next != NULL) {
+        hole2->next->prev = hole1;
+    }
+}
+
 void mems_free(void* v_ptr) {
     // Implement the function according to the requirements
+    struct mainNode* temp = head;
+    struct subNode* sub_temp;
+    
+    while (temp != NULL) {
+        sub_temp = temp->subn;
+        while (sub_temp != NULL) {
+            if (v_ptr >= sub_temp->start_virt && v_ptr <= sub_temp->end_virt) {
+                if (sub_temp->status == 0) {
+                    printf("Segmentation Fault!");
+                    return;
+                } else {
+                    sub_temp->status = 0;
+                    
+                    // Merge left hole
+                    if (sub_temp->prev != NULL && sub_temp->prev->status == 0) {
+                        mergeHoles(sub_temp->prev, sub_temp);
+                        sub_temp = sub_temp->prev;
+                        temp->no_of_subnodes--;
+                    }
+
+                    // Merge right hole
+                    if (sub_temp->next != NULL && sub_temp->next->status == 0) {
+                        mergeHoles(sub_temp, sub_temp->next);
+                        temp->no_of_subnodes--;
+                    }
+
+                    return;
+                }
+            }
+            sub_temp = sub_temp->next;
+        }
+        temp = temp->next;
+    }
 }
+
 
 int main() {
     mems_init();
@@ -369,5 +421,12 @@ int main() {
     printf("\n--------- Printing Stats [mems_print_stats] --------\n");
     mems_print_stats();
 
+    printf("\n--------- Freeing up the memory [mems_free] --------\n");
+    mems_free(ptr[0]);
+    mems_print_stats();
+    //Error -- Node connectivity problem not displaying Process allocated
+    // Error in reallocating memory after free memory
+    ptr[3] = (int*)mems_malloc(sizeof(int)*250);
+    mems_print_stats();
     return 0;
 }
