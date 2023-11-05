@@ -85,9 +85,11 @@ struct subNode* createNewSubNode(struct subNode* temp_sub,struct mainNode* mNode
     printf("%d\n",temp_sub->start_virt);
     void* t = temp_sub->start_virt;
     newNode->start_virt = t;
-    printf("new Node start virtual address : %d\n",newNode->start_virt);
+    // printf("new Node start virtual address : %d\n",(char*)newNode->start_virt + size - 1);
     newNode->end_virt = (void *)((char*)newNode->start_virt + size - 1);
     temp_sub->start_virt = (void*)((char*)newNode->end_virt + 1);
+    // printf("virtual address : %d\n",temp_sub->start_virt);
+    // printf("new Node start virtual address : %d\n",newNode->start_virt);
     return newNode;
 
 };
@@ -152,6 +154,11 @@ void* mems_malloc(size_t size) {
             while(temp_sub!=NULL){
                 if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>=size){
                     struct subNode* sub1 = createNewSubNode(temp_sub,temp,size);
+                    temp->subn  = sub1;
+                    printf("hole start v address--> %d:\n",temp_sub->start_virt);
+                    printf("hole end v address--> %d:\n",temp_sub->end_virt);
+                    printf("process start v address --> %d:\n",sub1->start_virt);
+                    printf("process end v address --> %d:\n",sub1->end_virt);
                     return sub1->start_virt;
                 }
                 temp_sub = temp_sub->next;
@@ -167,6 +174,11 @@ void* mems_malloc(size_t size) {
                 if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>=size){
                     struct subNode* Node2 = createNewSubNode(temp_sub,temp,size);
                     printf("Yes it's me!!\n");
+                    printf("hole start v address--> %d:\n",temp_sub->start_virt);
+                    printf("hole end v address--> %d:\n",temp_sub->end_virt);
+                    printf("process start v address --> %d:\n",Node2->start_virt);
+                    printf("process end v address --> %d:\n",Node2->end_virt);
+                    // temp->subn = Node2->prev;
                     return Node2->start_virt;
                 }
                 temp_sub = temp_sub->next;
@@ -193,21 +205,28 @@ void* mems_malloc(size_t size) {
     }
 
     struct subNode* hole = createHole(Node);
+
+    //Error-> This pointer is pointing towards hole so when hole changes this pointer will also change
+    // This error is solved we just need to assign value to first process node crteted on the Big Hole
     Node->subn = hole;
     int sizeSub = sizeof(struct subNode);
     printf("size of subNodes are:%d\n",sizeSub);
     p = (void *)((char*)p + sizeSub);
     printf("%d\n",p);
     count ++;                               // increase count of main nodes
-    void*a = head;
-    temp = a;
+    temp = head;
     struct subNode* temp_sub = NULL;
     while(temp!=NULL){
         temp_sub = temp->subn;
         while(temp_sub!=NULL){
             if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>=size){
                 struct subNode* Node2 = createNewSubNode(temp_sub,temp,size);
-               
+                temp->subn = Node2;
+                printf("Yes it's me!!\n");
+                printf("hole start v address--> %d:\n",temp_sub->start_virt);
+                printf("hole end v address--> %d:\n",temp_sub->end_virt);
+                printf("process start v address --> %d:\n",Node2->start_virt);
+                printf("process end v address --> %d:\n",Node2->end_virt);
                 return Node2->start_virt;
             }
             temp_sub = temp_sub->next;
@@ -239,6 +258,7 @@ void* mems_get(void* v_ptr) {
         if ((char*)v_ptr >= (char*)temp->start_virt_add && (char*)v_ptr <= (char*)temp->end_virt_add){
             sub_temp = temp->subn;
             printf("enter\n");
+
             while(sub_temp!=NULL){
                 printf("%d\n",(char*)sub_temp->start_virt);
                 printf("%d\n",(char*)sub_temp->end_virt);
@@ -250,7 +270,6 @@ void* mems_get(void* v_ptr) {
                         return (void*)((char*)temp->start_add + ((char*)v_ptr - (char*)temp->start_virt_add));
                     }
                 }
-
                 sub_temp = sub_temp->next;
             }
         }
@@ -283,17 +302,15 @@ int main() {
         ptr[i] = (int*)mems_malloc(sizeof(int)*250);
         printf("Virtual address: %lu\n", (unsigned long)ptr[i]);
     }
-
+    printf("%d\n",(int*) mems_get((int*)0));
     printf("\n------ Assigning value to Virtual address [mems_get] -----\n");
     // how to write to the virtual address of the MeMS (this is given to show that the system works on arrays as well)
-    // int* phy_ptr= (int*) mems_get(&ptr[0][1]); // get the address of index 1
-//    printf("Hello\n");
-   printf("%d\n",(int*) mems_get((int*)0));
-//    printf("%d\n",(int*) mems_get(&ptr[0][0]));
-    // phy_ptr[0]=200; // put value at index 1
-    // int* phy_ptr2= (int*) mems_get(&ptr[0][0]); // get the address of index 0
-    // printf("Virtual address: %lu\tPhysical Address: %lu\n",(unsigned long)ptr[0],(unsigned long)phy_ptr2);
-    // printf("Value written: %d\n", phy_ptr2[1]); // print the address of index 1 
+    int* phy_ptr= (int*) mems_get(&ptr[0][1]); // get the address of index 1
+    phy_ptr[0]=200; // put value at index 1
+    int* phy_ptr2= (int*) mems_get(&ptr[0][0]); // get the address of index 0
+    printf("Virtual address: %lu\tPhysical Address: %lu\n",(unsigned long)ptr[0],(unsigned long)phy_ptr2);
+    printf("Value written: %d\n", phy_ptr2[1]); // print the address of index 1 
+
 
     return 0;
 }
