@@ -1,5 +1,5 @@
 ## Edge cases Handled - 
->> Merging of Holes, right holes 
+>> Merging of Holes, right holes and left hole both 
 >> Customized segmentation faults
 >> allocating more pages to store free list if required,by checking conditions on p(what is p? given in definition of global variables).
 
