@@ -1,5 +1,7 @@
 ## Edge cases Handled - 
-
+>> Merging of Holes, right holes 
+>> Customized segmentation faults
+>> allocating more pages to store free list if required,by checking conditions on p(what is p? given in definition of global variables).
 
 Function Definitions - 
 
@@ -12,6 +14,26 @@ Function Definitions -
 Main Function
 The main function demonstrates the usage of the MeMS system by allocating and freeing memory, printing statistics, and finishing the program execution.
 
+### Global Variables used--
+In the provided C program, several global variables are used to maintain and manage the MeMS (Memory Management System) and its associated data structures. Here is an explanation of the global variables used in your program:
+
+1. **`head`**:
+   - These variables point to the head of the main chain of the MeMS system, respectively.
+   - They help in keeping track of the main nodes in the MeMS system.
+
+2. **`last_virt_add`**:
+   - This variable is used to store the last virtual address that was allocated in the MeMS system.
+   - It helps in tracking the virtual addresses of allocated memory segments.
+
+3. **`p`**:
+   - This variable serves as a pointer to manage memory allocation within the MeMS system.
+   - It keeps track of the current position in the memory where the next allocation can be made.
+
+4. **`No_of_pages`** and **`count`**:
+   - These variables keep track of the total number of pages and the total number of main nodes in the MeMS system, respectively.
+   - They aid in managing and monitoring the allocation and deallocation of memory segments.
+
+These global variables play a crucial role in managing the MeMS system and ensuring the efficient allocation, deallocation, and utilization of memory resources within the program. They help in maintaining the state of the data structures and facilitate the tracking of allocated memory segments and available memory segments (holes) within the MeMS system.
 
 The provided C program defines two main structures: `struct mainNode` and `struct subNode`. These structures serve as the backbone for managing memory allocation and deallocation within the custom memory management system.
 
