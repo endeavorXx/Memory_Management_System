@@ -70,24 +70,27 @@ void mems_finish() {
     // Implement the function according to the requirements
     printf("--------------- Clearing all allocated memory ------------------------\n");
 
-    munmap(head,PAGE_SIZE);          // or munmap(head,PAGE_SIZE)
-    head = NULL;
-    count = 0;
-    // struct mainNode* node = head->next;
-    // struct mainNode* temp;  
-    // while (node!= NULL){
-    //     if(node->next != NULL){
-    //         temp = node->next;
-    //     }else{
-    //         temp = NULL;
-    //     }
-    //     munmap(node,node->pages*PAGE_SIZE);
-    //     node = temp;
-    //     printf("Exiting out\n");
-    //     count--;
-    // }
+    // munmap(head,PAGE_SIZE);          // or munmap(head,PAGE_SIZE)
     // head = NULL;
+    // count = 0;
 
+    // or
+
+    struct mainNode* node = head->next;
+    struct mainNode* temp;  
+    while (node!= NULL){
+        if(node->next != NULL){
+            temp = node->next;
+        }else{
+            temp = NULL;
+        }
+        munmap(node,node->pages*PAGE_SIZE);
+        node = temp;
+        printf("Exiting out\n");
+        count--;
+    }
+    head->next = NULL;
+    head = NULL;
 }
 
 /*
