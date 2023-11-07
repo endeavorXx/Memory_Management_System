@@ -134,6 +134,7 @@ The `mems_free()` function plays a crucial role in managing the deallocation of 
 
 
 The `mems_get()` function in the provided C program is designed to retrieve the physical memory address associated with a given virtual memory address within the MeMS (Memory Management System). Here is a summary of its key features:
+# Assumption - If user wants to access physical address of a process but the user provides the virtual address which is not starting address of the process but is the address which lies in the range of [start_virt,end_virt] then mems_get will return starting physical address. No error will be casted on the screen.
 
 ### `mems_get(void* v_ptr)`
 1. **Input:**
