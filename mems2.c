@@ -303,9 +303,11 @@ void mems_print_stats() {
     struct mainNode* temp = head;
     struct subNode* temp_sub = NULL;
     int unused_space = 0;
+    int pages_used = 0;
     int i = 0;
     int arr[count];
     while(temp!=NULL){
+        pages_used += temp->pages;
         temp_sub = temp->subn;
         arr[i] = temp->no_of_subnodes;
         printf("MAIN[%d-%d]->",(char*)temp->start_virt_add,(char*)temp->end_virt_add);
@@ -322,6 +324,7 @@ void mems_print_stats() {
         printf("NULL\n");
         i++;
     }
+    printf("Pages Used : %d\n",pages_used);
     printf("Space Unused:%d\n",unused_space);
     printf("Main chain length:%d\n",count);
     printf("Sub-chain length array: ");
