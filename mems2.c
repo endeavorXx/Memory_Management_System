@@ -6,6 +6,7 @@
 #include <math.h>
 
 #define PAGE_SIZE 4096
+#define INITIAL_VIRTUAL_ADDRESS 1000
 
 typedef unsigned long ulong;
 
@@ -43,7 +44,7 @@ int count = 0;                      //count no of nodes in the main chain
 Initializes all the required parameters for the MeMS system.
 */
 void mems_init() {
-    head = (struct mainNode*)mmap(NULL, PAGE_SIZE*PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    head = (struct mainNode*)mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (head == MAP_FAILED) {
         perror("mmap");
         exit(EXIT_FAILURE);
@@ -104,6 +105,13 @@ a sufficiently large segment is available.
 */
 
 struct subNode* createNewSubNode(struct subNode* temp_sub,struct mainNode* mNode,size_t size){
+    if ((char*)p + sizeof(struct subNode) + 128 > (char*)head->start_add + PAGE_SIZE){
+            p = mmap(NULL, PAGE_SIZE*PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            if (p == MAP_FAILED){
+            perror("mmap");
+            exit(EXIT_FAILURE);
+            }
+        }
     struct subNode* newNode = (struct subNode*)p;
     p = (void*)((char*)p + sizeof(struct subNode));
     if (temp_sub->prev!=NULL){
@@ -128,6 +136,13 @@ struct subNode* createNewSubNode(struct subNode* temp_sub,struct mainNode* mNode
 };
 
 struct subNode* createHole(struct mainNode* Node){
+    if ((char*)p + sizeof(struct subNode) + 128 > (char*)head->start_add + PAGE_SIZE){
+            p = mmap(NULL, PAGE_SIZE*PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            if (p == MAP_FAILED){
+            perror("mmap");
+            exit(EXIT_FAILURE);
+            }
+        }
     struct subNode* hole = (struct subNode*)p;
         hole->main_chain_node = Node;
         hole->prev = NULL;
@@ -147,17 +162,25 @@ void* mems_malloc(size_t size) {
         tot_pages = (size/PAGE_SIZE) + 1;
     }
     // printf("%d\n",tot_pages);
-
+    // check that is it possible if we can allocate a memory of 128 bytes since each struct is of 56 bytes
     if(count == 0){
+        // printf("%d\n",sizeof(struct mainNode));
+        if ((char*)p + sizeof(struct mainNode) + 128 > (char*)head->start_add + PAGE_SIZE){
+            p = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            if (p == MAP_FAILED){
+            perror("mmap");
+            exit(EXIT_FAILURE);
+            }
+        }
         struct mainNode* Node = (struct mainNode*)p;
         Node->no_of_subnodes = 0;
         head->next = Node;
         Node->prev = NULL;
         Node->next = NULL;
-        Node->start_virt_add = (void*)(char*)1000;
+        Node->start_virt_add = (void*)(char*)INITIAL_VIRTUAL_ADDRESS;
         Node->end_virt_add = (void*)((char *)Node->start_virt_add + (tot_pages*PAGE_SIZE) - 1);
         int sizeMain = sizeof(struct mainNode);
-        printf("%d\n",sizeMain);
+        // printf("%d\n",sizeMain);
         // printf("Node1 start v address:%d\n",Node->start_virt_add);
         // printf("Node1 end v address:%d\n",Node->end_virt_add);
         p = (void *)((char*)p + sizeMain);
@@ -246,6 +269,13 @@ void* mems_malloc(size_t size) {
     Node->start_virt_add = (void*)((char*)temp->end_virt_add + 1);
     Node->end_virt_add = (void*)((char*)Node->start_virt_add + tot_pages*PAGE_SIZE - 1);
     Node->pages  = tot_pages;
+    if ((char*)p + sizeof(struct mainNode) + 128 > (char*)head->start_add + PAGE_SIZE){
+            p = mmap(NULL, PAGE_SIZE*PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            if (p == MAP_FAILED){
+            perror("mmap");
+            exit(EXIT_FAILURE);
+            }
+        }
     Node->start_add = mmap(NULL, (int)tot_pages * PAGE_SIZE , PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (Node->start_add == MAP_FAILED) {
     perror("mmap");
@@ -433,13 +463,13 @@ void mems_free(void* v_ptr) {
 int main() {
     // printf("%d\n",(int*) mems_get((int*)0));
     mems_init();
-    int* ptr[10];
+    int* ptr[100];
 
     /*
     This allocates 10 arrays of 250 integers each
     */
     printf("\n------- Allocated virtual addresses [mems_malloc] -------\n");
-    for(int i=0;i<10;i++){
+    for(int i=0;i<100;i++){
         ptr[i] = (int*)mems_malloc(sizeof(int)*250);
         printf("Virtual address: %lu\n", (unsigned long)ptr[i]);
     }
