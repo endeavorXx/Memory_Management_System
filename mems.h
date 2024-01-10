@@ -55,12 +55,7 @@ void mems_init() {
     head->subn = NULL;
     head->pages = 0;
     head->start_add = (void *)head;
-    // tail = head;
-    // printf("Head Physical address is:%d\n", head->start_add);
-    // printf("size of head:%d\n",sizeof(head));
-    // printf("size of structure is :%d\n",sizeof(struct mainNode));
     p = head->start_add;
-    // printf("%d\n",p);
 }
 
 /*
@@ -88,8 +83,6 @@ void mems_finish() {
         int t = munmap(node,node->pages*PAGE_SIZE);
         // if (t == -1){
         //     perror("munmap");
-        //     // exit(EXIT_FAILURE);
-        // }
         node = temp;
         // printf("Exiting out\n");
         count--;
@@ -121,16 +114,11 @@ struct subNode* createNewSubNode(struct subNode* temp_sub,struct mainNode* mNode
     newNode->prev = temp_sub->prev;
     temp_sub->prev = newNode;
     newNode->next = temp_sub;
-    // temp_sub->prev->next = newNode;
     newNode->status = 1;
-    // printf("%d\n",temp_sub->start_virt);
     void* t = temp_sub->start_virt;
     newNode->start_virt = t;
-    // printf("new Node start virtual address : %d\n",(char*)newNode->start_virt + size - 1);
     newNode->end_virt = (void *)((char*)newNode->start_virt + size - 1);
     temp_sub->start_virt = (void*)((char*)newNode->end_virt + 1);
-    // printf("virtual address : %d\n",temp_sub->start_virt);
-    // printf("new Node start virtual address : %d\n",newNode->start_virt);
     return newNode;
 
 };
@@ -180,12 +168,8 @@ void* mems_malloc(size_t size) {
         Node->start_virt_add = (void*)(char*)INITIAL_VIRTUAL_ADDRESS;
         Node->end_virt_add = (void*)((char *)Node->start_virt_add + (tot_pages*PAGE_SIZE) - 1);
         int sizeMain = sizeof(struct mainNode);
-        // printf("%d\n",sizeMain);
-        // printf("Node1 start v address:%d\n",Node->start_virt_add);
-        // printf("Node1 end v address:%d\n",Node->end_virt_add);
         p = (void *)((char*)p + sizeMain);
         Node->pages = tot_pages;
-        // printf("%d\n",p);
 
         //stores physical address of allocated memory
         Node->start_add = mmap(NULL, (int)tot_pages * PAGE_SIZE , PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -197,11 +181,7 @@ void* mems_malloc(size_t size) {
         struct subNode* hole = createHole(Node);
         Node->subn = hole;
         Node->no_of_subnodes++;
-        // printf("BigHole start and end v address:%d %d\n",Node->subn->start_virt,Node->subn->end_virt);
-        // int sizeSub = sizeof(struct subNode);
-        // printf("size of subNodes are:%d\n",sizeSub);
         p = (void *)((char*)p + sizeof(struct subNode));
-        // printf("%d\n",p);
         count ++;                               // increase count of main nodes
 
         // add similar function for allocating process from hole
@@ -209,17 +189,11 @@ void* mems_malloc(size_t size) {
         struct subNode* temp_sub = NULL;
         while(temp!=NULL){
             temp_sub = temp->subn;
-            // printf("BigHole start and end v address:%d %d\n",temp->subn->start_virt,temp->subn->end_virt);
             while(temp_sub!=NULL){
                 if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>size){
                     struct subNode* sub1 = createNewSubNode(temp_sub,temp,size);
                     temp->subn  = sub1;
                     temp->no_of_subnodes++;
-                    // printf("process start v address --> %d:\n",sub1->start_virt);
-                    // printf("process end v address --> %d:\n",sub1->end_virt);
-                    // printf("hole start v address--> %d:\n",temp_sub->start_virt);
-                    // printf("hole end v address--> %d:\n",temp_sub->end_virt);
-                    // printf("checking :%d\n",sub1->next->start_virt);
                     return sub1->start_virt;
                 }else if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)==size){
                     temp_sub->status = 1;
@@ -238,13 +212,6 @@ void* mems_malloc(size_t size) {
                 if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)>size){
                     struct subNode* Node2 = createNewSubNode(temp_sub,temp,size);
                     temp->no_of_subnodes++;
-                    // printf("Yes it's me!!\n");
-                    // printf("hole start v address--> %d:\n",temp_sub->start_virt);
-                    // printf("hole end v address--> %d:\n",temp_sub->end_virt);
-                    // printf("process start v address --> %d:\n",Node2->start_virt);
-                    // printf("process end v address --> %d:\n",Node2->end_virt);
-                    // printf("checking :%d\n",Node2->next->start_virt);
-                    // temp->subn = Node2->prev;
                     return Node2->start_virt;
                 }else if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)==size){
                     temp_sub->status = 1;
@@ -287,9 +254,8 @@ void* mems_malloc(size_t size) {
     Node->subn = hole;
     Node->no_of_subnodes++;
     int sizeSub = sizeof(struct subNode);
-    // printf("size of subNodes are:%d\n",sizeSub);
+
     p = (void *)((char*)p + sizeSub);
-    // printf("%d\n",p);
     count ++;                               // increase count of main nodes
     temp = head;
     struct subNode* temp_sub = NULL;
@@ -300,11 +266,6 @@ void* mems_malloc(size_t size) {
                 struct subNode* Node2 = createNewSubNode(temp_sub,temp,size);
                 temp->subn = Node2;
                 temp->no_of_subnodes++;
-                // printf("Yes it's me!!\n");
-                // printf("hole start v address--> %d:\n",temp_sub->start_virt);
-                // printf("hole end v address--> %d:\n",temp_sub->end_virt);
-                // printf("process start v address --> %d:\n",Node2->start_virt);
-                // printf("process end v address --> %d:\n",Node2->end_virt);
                 return Node2->start_virt;
             }else if(temp_sub->status == 0 && ((char*)temp_sub->end_virt - (char*)temp_sub->start_virt +1)==size){
                 temp_sub->status = 1;
@@ -384,15 +345,9 @@ void* mems_get(void* v_ptr) {
     struct subNode* sub_temp;
      
     while(temp!=NULL){
-        // printf("%d\n",(char*)temp->start_virt_add);
-        // printf("%d\n",(char*)temp->end_virt_add);
-        // printf("%d\n",(char*)v_ptr >= (char*)temp->start_virt_add && (char*)v_ptr <= (char*)temp->end_virt_add);
         if ((char*)v_ptr >= (char*)temp->start_virt_add && (char*)v_ptr <= (char*)temp->end_virt_add){
             sub_temp = temp->subn;
             while(sub_temp!=NULL){
-                // printf("%d\n",(char*)sub_temp->start_virt);
-                // printf("%d\n",(char*)sub_temp->end_virt);
-                // printf("%d\n",v_ptr >= sub_temp->start_virt && v_ptr <= sub_temp->end_virt);
                 if (v_ptr >= sub_temp->start_virt && v_ptr <= sub_temp->end_virt){
                     if (sub_temp->status == 0){
                         printf("Segmentation Fault!\n");
