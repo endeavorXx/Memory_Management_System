@@ -1,4 +1,4 @@
-## Traditionally, malloc() library is used in C for the allocation of the memory.The work is about implemting an efficient Memory Management system in C, Given space input by the user it efficiently allocates memory to the user onto the memory. 
+## Traditionally, malloc() library is used in C for the allocation of the memory.The work is about implemting an efficient Memory Management system in C, Given space input by the user it efficiently allocates memory to the user in the memory. 
 
 Function Definitions - 
 
