@@ -5,12 +5,12 @@
 
 Function Definitions - 
 
-# mems_init() initializes the memory management system.
-# mems_finish() frees all allocated memory at the end of the program execution.
-# mems_malloc(size_t size) allocates memory for a specified size.
-# mems_print_stats() prints the statistics of the memory management system.
-# mems_get(void* v_ptr) returns the physical address mapped to the virtual address.
-# mems_free(void* v_ptr) frees up memory pointed to by the virtual address.
+## mems_init() initializes the memory management system.
+## mems_finish() frees all allocated memory at the end of the program execution.
+## mems_malloc(size_t size) allocates memory for a specified size.
+## mems_print_stats() prints the statistics of the memory management system.
+## mems_get(void* v_ptr) returns the physical address mapped to the virtual address.
+## mems_free(void* v_ptr) frees up memory pointed to by the virtual address.
 Main Function
 The main function demonstrates the usage of the MeMS system by allocating and freeing memory, printing statistics, and finishing the program execution.
 
