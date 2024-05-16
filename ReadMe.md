@@ -1,7 +1,4 @@
-## Edge cases Handled - 
->> Merging of Holes, right holes and left hole both 
->> Customized segmentation faults
->> allocating more pages to store free list if required,by checking conditions on p(what is p? given in definition of global variables).
+## Traditionally, malloc() library is used in C for the allocation of the memory.The work is about implemting an efficient Memory Management system in C, Given space input by the user it efficiently allocates memory to the user onto the memory. 
 
 Function Definitions - 
 
@@ -163,3 +160,7 @@ The `mems_finish()` function in the provided C program is responsible for cleari
 - Set the `count` variable = 0 The main Node count is the free list.
 
 Overall, the `mems_finish()` function ensures that all the allocated memory within the MeMS system is properly deallocated, preventing memory leaks and freeing up resources for other system operations.
+## Edge cases Handled - 
+>> Merging of Holes, right holes and left hole both 
+>> Customized segmentation faults
+>> allocating more pages to store free list if required,by checking conditions on p(what is p? given in definition of global variables).
